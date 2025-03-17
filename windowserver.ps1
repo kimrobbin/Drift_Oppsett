@@ -11,7 +11,7 @@ $domain = "$domain1.$domain2"
 $ouName = "users"
 
 # Rename Computer
-Rename-Computer -NewName $computername -Restart
+Rename-Computer -NewName $computername 
 
 # Set Static IP Address
 New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias "Ethernet"
@@ -29,3 +29,5 @@ Install-ADDSForest -DomainName $domain -InstallDNS
 # Create Organizational Unit
 New-ADOrganizationalUnit -Name $ouName -Path "DC=$domain1,DC=$domain2"
 Set-ADDomain -Identity $domain -DefaultUserContainer "OU=$ouName,DC=$domain1,DC=$domain2"
+
+Restart-Computer
