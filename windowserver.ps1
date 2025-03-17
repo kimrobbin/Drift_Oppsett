@@ -14,7 +14,7 @@ $ouName = "users"
 Rename-Computer -NewName $computername -Restart
 
 # Set Static IP Address
-New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway
+New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias "Ethernet"
 
 # Configure VLAN
 Set-NetAdapter -Name "Ethernet" -VlanID $vlanID
