@@ -1,5 +1,5 @@
 # Define variables
-$computername = "Main"
+$computername = "SchoolMainServer"
 $ip = "192.168.35.1"
 $gateway = "192.168.35.1"
 $length = 24
