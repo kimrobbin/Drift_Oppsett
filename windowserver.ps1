@@ -3,6 +3,9 @@ $computername = "SchoolMainServer"
 $ip = "192.168.35.1"
 $gateway = "192.168.35.1"
 $length = 24
+
+$vSwitchName = "External"
+$netAdapterName = "Ethernet"
 $vlanID = 335
 
 $domain1 = "kimrobbin"
@@ -16,8 +19,14 @@ Rename-Computer -NewName $computername
 # Set Static IP Address
 New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias "Ethernet"
 
-# Configure VLAN
-Set-NetAdapter -Name "Ethernet" -VlanID $vlanID
+
+# Create a new virtual switch with an external connection type
+New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true
+
+# Set VLAN ID for the virtual switch
+Set-VMNetworkAdapterVlan  -VMNetworkAdapterName $netAdapterName -Access -VlanId $vlanID
+
+
 
 # Install required features
 $features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
