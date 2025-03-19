@@ -39,3 +39,5 @@ Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementT
 
 # Stop logging
 Stop-Transcript
+
+Restart-Computer  
