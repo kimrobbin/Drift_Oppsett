@@ -1,3 +1,6 @@
+# Start logging
+Start-Transcript -Path "C:\Logs\windowserver2.log"
+
 # Define variables
 $computername = "MainServer"
 $ip = "192.168.35.1"
@@ -64,3 +67,6 @@ try {
 } catch {
     Write-Error "Failed to authorize DHCP server: $_"
 }
+
+# Stop logging
+Stop-Transcript
