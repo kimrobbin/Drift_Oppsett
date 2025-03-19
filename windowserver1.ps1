@@ -7,7 +7,7 @@ $gateway = "192.168.35.1"
 $length = 24
 
 $vSwitchName = "External"
-$netAdapterName = "vEthernet (external)"
+$netAdapterName = "Ethernet"
 $vlanID = 335
 
 $domain1 = "kimrobbin"

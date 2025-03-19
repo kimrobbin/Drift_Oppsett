@@ -7,7 +7,8 @@ $gateway = "192.168.35.1"
 $length = 24
 
 $vSwitchName = "External"
-$netAdapterName = (Get-NetAdapter | Where-Object { $_.Name -like "vEthernet*" }).Name
+$netAdapterName = "Ethernet"
+$newAdapterName = "vEthernet (external)"
 $vlanID = 335
 
 $domain1 = "kimrobbin"
@@ -20,12 +21,6 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-# Set DNS Server
-try {
-    Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4") -ErrorAction Stop
-} catch {
-    Write-Error "Failed to set DNS server address: $_"
-}
 
 # Create a new virtual switch with an external connection type
 try {
@@ -39,6 +34,12 @@ try {
     Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
 } catch {
     Write-Error "Failed to set VLAN ID: $_"
+}
+# Set DNS Server
+try {
+    Set-DnsClientServerAddress -InterfaceAlias $newAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4") -ErrorAction Stop
+} catch {
+    Write-Error "Failed to set DNS server address: $_"
 }
 
 # Ensure AD Services are running before proceeding
