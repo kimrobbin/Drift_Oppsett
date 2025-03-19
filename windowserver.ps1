@@ -22,6 +22,9 @@ $subnetMask = "255.255.255.0"
 # Rename Computer
 Rename-Computer -NewName $computername 
 
+$features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
+Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementTools -Restart
+
 # Check if the network adapter exists
 $netAdapter = Get-NetAdapter -Name $netAdapterName
 if ($null -eq $netAdapter) {
@@ -58,8 +61,6 @@ try {
 }
 
 # Install required features
-$features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
-Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementTools -Restart
 
 # Configure Active Directory Domain Services
 Install-ADDSForest -DomainName $domain -InstallDNS
@@ -71,5 +72,3 @@ Set-ADDomain -Identity $domain -DefaultUserContainer "OU=$ouName,DC=$domain1,DC=
 # Configure DHCP Server
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
 Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
-
-Restart-Computer
