@@ -1,4 +1,3 @@
-# Start logging
 Start-Transcript -Path "C:\Logs\windowserver2.log"
 
 # Define variables
@@ -8,7 +7,7 @@ $gateway = "192.168.35.1"
 $length = 24
 
 $vSwitchName = "External"
-$netAdapterName = "Ethernet"
+$netAdapterName = (Get-NetAdapter | Where-Object { $_.Name -like "vEthernet*" }).Name
 $vlanID = 335
 
 $domain1 = "kimrobbin"
@@ -16,57 +15,55 @@ $domain2 = "local"
 $domain = "$domain1.$domain2"
 $ouName = "users"
 
-# DHCP Scope Variables
 $scopeName = "Scope1"
 $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-# Set Static IP Address
-try {
-    New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias $netAdapterName
-} catch {
-    Write-Error "Failed to add IP address: $_"
-}
-
 # Set DNS Server
 try {
-    Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4")
+    Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4") -ErrorAction Stop
 } catch {
     Write-Error "Failed to set DNS server address: $_"
 }
 
 # Create a new virtual switch with an external connection type
 try {
-    New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true
+    New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true -ErrorAction Stop
 } catch {
     Write-Error "Failed to create virtual switch: $_"
 }
 
-# Set VLAN ID for the virtual switch
+# Set VLAN ID Correctly
 try {
-    Set-VMNetworkAdapterVlan -AllowManagementOS -VMNetworkAdapterName $netAdapterName -Access -VlanId $vlanID
+    Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
 } catch {
     Write-Error "Failed to set VLAN ID: $_"
 }
 
-# Configure Active Directory Domain Services
-Install-ADDSForest -DomainName $domain -InstallDNS
+# Ensure AD Services are running before proceeding
+if (-not (Get-Service ADWS -ErrorAction SilentlyContinue)) {
+    Write-Error "Active Directory Web Services is not running. Ensure AD is properly installed."
+    exit 1
+}
 
-# Create Organizational Unit
-New-ADOrganizationalUnit -Name $ouName -Path "DC=$domain1,DC=$domain2"
-Set-ADDomain -Identity $domain -DefaultUserContainer "OU=$ouName,DC=$domain1,DC=$domain2"
+# Configure AD DS
+Install-ADDSForest -DomainName $domain -InstallDNS -Force
 
-# Configure DHCP Server
+# Create Organizational Unit if it doesn't exist
+if (-not (Get-ADOrganizationalUnit -Filter { Name -eq $ouName } -ErrorAction SilentlyContinue)) {
+    New-ADOrganizationalUnit -Name $ouName -Path "DC=$domain1,DC=$domain2"
+}
+
+# Configure DHCP
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
 Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
 
-# Authorize DHCP Server in Active Directory
+# Authorize DHCP Server
 try {
-    Add-DhcpServerInDC -DnsName $computername -IPAddress $ip
+    Add-DhcpServerInDC -DnsName $computername -IPAddress $ip -ErrorAction Stop
 } catch {
     Write-Error "Failed to authorize DHCP server: $_"
 }
 
-# Stop logging
-Stop-Transcript
+Restart-Computer  

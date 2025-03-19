@@ -1,4 +1,3 @@
-# Start logging
 Start-Transcript -Path "C:\Logs\windowserver1.log"
 
 # Define variables
@@ -8,7 +7,7 @@ $gateway = "192.168.35.1"
 $length = 24
 
 $vSwitchName = "External"
-$netAdapterName = "Ethernet"
+$netAdapterName = "vEthernet (external)"
 $vlanID = 335
 
 $domain1 = "kimrobbin"
@@ -22,14 +21,21 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-# Rename Computer
+
 Rename-Computer -NewName $computername 
 
-$features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
-Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementTools -NoRestart
 
-# Restart computer to apply changes
-Restart-Computer -Force
+
+# Set Static IP Address
+try {
+    New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias $netAdapterName -ErrorAction Stop
+} catch {
+    Write-Error "Failed to add IP address: $_"
+}
+
+# Install Windows Features
+$features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
+Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementTools -Restart
 
 # Stop logging
 Stop-Transcript
