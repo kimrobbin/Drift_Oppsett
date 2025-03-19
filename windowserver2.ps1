@@ -19,19 +19,6 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-# Rename Computer
-Rename-Computer -NewName $computername 
-
-$features = @("AD-Domain-Services", "DHCP", "DNS", "Hyper-V")
-Install-WindowsFeature -Name $features -IncludeAllSubFeature -IncludeManagementTools -Restart
-
-# Check if the network adapter exists
-$netAdapter = Get-NetAdapter -Name $netAdapterName
-if ($null -eq $netAdapter) {
-    Write-Error "Network adapter '$netAdapterName' not found."
-    exit
-}
-
 # Set Static IP Address
 try {
     New-NetIPAddress -IPAddress $ip -PrefixLength $length -DefaultGateway $gateway -InterfaceAlias $netAdapterName
@@ -55,12 +42,10 @@ try {
 
 # Set VLAN ID for the virtual switch
 try {
-    Set-VMNetworkAdapterVlan -VMNetworkAdapterName $netAdapterName -Access -VlanId $vlanID
+    Set-VMNetworkAdapterVlan -AllowManagementOS -VMNetworkAdapterName $netAdapterName -Access -VlanId $vlanID
 } catch {
     Write-Error "Failed to set VLAN ID: $_"
 }
-
-# Install required features
 
 # Configure Active Directory Domain Services
 Install-ADDSForest -DomainName $domain -InstallDNS
@@ -72,3 +57,10 @@ Set-ADDomain -Identity $domain -DefaultUserContainer "OU=$ouName,DC=$domain1,DC=
 # Configure DHCP Server
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
 Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
+
+# Authorize DHCP Server in Active Directory
+try {
+    Add-DhcpServerInDC -DnsName $computername -IPAddress $ip
+} catch {
+    Write-Error "Failed to authorize DHCP server: $_"
+}
