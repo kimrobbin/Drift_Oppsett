@@ -14,12 +14,9 @@ Hyper-v has a virtual network with a vlan at 335.
 OPNsense is needed for DNS to work. It is not installed with the script.
 
 
-
-
 All variables are defined at the top of the script. If you need to make changes you should only need to change those for simple 
-
 
 ```
 If you are going to use a csv to import users this is the format:
- **First Name,Last Name,Password,Role**  
+ **First Name, Last Name, Password, Role**  
 
