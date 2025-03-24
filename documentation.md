@@ -1,4 +1,4 @@
-# documentation
+# documentation for school server
 
 <br>
 
@@ -8,6 +8,8 @@ The main servers name is MainServer.
 The ip is 192.168.35.10 and the gateway is 192.168.35.1.
 
 The DHCP scope is 192.168.35.100-200 and the subnetmask is 255.255.255.0.
+
+Domain name is skole.loacl 
 
 Hyper-v has a virtual network with a vlan at 335.
 
@@ -27,6 +29,9 @@ If you are going to use a csv to import users this is the format:
 The scrip will make a folder in your C drive where it will log what the scrip does. So if it fails you can see everything.
 
 The part that downloads programs are on line 35 in windowserver1.ps1
+
+You need to change the opnSense variable to your opnsense ip
+
 ```
 
 

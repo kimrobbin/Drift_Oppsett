@@ -4,7 +4,7 @@ $domain = "$domain1.$domain2"
 $ouName1 = "Elever"
 $ouName2 = "Lerere"
 
-$csvPath = ""
+$csvPath = "" # change to file path 
 
 $users = Import-Csv -Path $csvPath
 

@@ -9,6 +9,6 @@ $ouName = "users"
 $userFirstName = ""
 $userLastName = ""
 $userName = "$userFirstName.$userLastName"
-$userPassword = ConvertTo-SecureString "Password-Need-To-Change-For-Use" -AsPlainText -Force
+$userPassword = ConvertTo-SecureString "change for password" -AsPlainText -Force
 
 New-ADUser -Name $userName -GivenName $userFirstName -Surname $userLastName -SamAccountName $userName -UserPrincipalName "$userName@$domain" -Path "OU=$ouName,DC=$domain1,DC=$domain2" -AccountPassword $userPassword -Enabled $true

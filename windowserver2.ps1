@@ -21,29 +21,26 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
+$opnSense = "192.168.35.2"
+
 
 New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true -ErrorAction Stop
 
 
 
 # Set VLAN ID 
+Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
 
-    Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
-
-
-    Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4") -ErrorAction Stop
+Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ($opnSense) -ErrorAction Stop
 
 
 # Ensure AD Services are running before proceeding
-if (-not (Get-Service ADWS -ErrorAction SilentlyContinue)) {
-    Write-Error "Active Directory Web Services is not running. Ensure AD is properly installed."
-    exit 1
-}
+Get-Service ADWS -ErrorAction SilentlyContinue
 
 # Configure AD DS
 Install-ADDSForest -DomainName $domain -InstallDNS -Force
 
-# Create Organizational Units
+# Create OU
 New-ADOrganizationalUnit -Name $ouName1 -Path "DC=$domain1,DC=$domain2"
 New-ADOrganizationalUnit -Name $ouName2 -Path "DC=$domain1,DC=$domain2"
 
@@ -51,9 +48,7 @@ New-ADOrganizationalUnit -Name $ouName2 -Path "DC=$domain1,DC=$domain2"
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
 Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
 
-#  DHCP Server
-
-    Add-DhcpServerInDC -DnsName $computername -IPAddress $ip -ErrorAction Stop
+Add-DhcpServerInDC -DnsName $computername -IPAddress $ip -ErrorAction Stop
 
 
 
