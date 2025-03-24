@@ -21,25 +21,18 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-# Create a new virtual switch with an external connection type
-try {
-    New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true -ErrorAction Stop
-} catch {
-    Write-Error "Failed to create virtual switch: $_"
-}
+
+New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true -ErrorAction Stop
+
+
 
 # Set VLAN ID 
-try {
+
     Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
-} catch {
-    Write-Error "Failed to set VLAN ID: $_"
-}
-# Set DNS Server
-try {
+
+
     Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ("8.8.8.8", "8.8.4.4") -ErrorAction Stop
-} catch {
-    Write-Error "Failed to set DNS server address: $_"
-}
+
 
 # Ensure AD Services are running before proceeding
 if (-not (Get-Service ADWS -ErrorAction SilentlyContinue)) {
@@ -58,11 +51,11 @@ New-ADOrganizationalUnit -Name $ouName2 -Path "DC=$domain1,DC=$domain2"
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
 Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
 
-# Authorize DHCP Server
-try {
+#  DHCP Server
+
     Add-DhcpServerInDC -DnsName $computername -IPAddress $ip -ErrorAction Stop
-} catch {
-    Write-Error "Failed to authorize DHCP server: $_"
-}
+
+
+
 
 Restart-Computer
