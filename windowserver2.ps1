@@ -4,7 +4,8 @@ Start-Transcript -Path "C:\Logs\windowserver2.log"
 $computername = "MainServer"
 $ip = "192.168.35.10"
 $gateway = "192.168.35.1"
-$length = 24
+$opnSense = "192.168.35.2"
+
 
 $vSwitchName = "External"
 $netAdapterName = "Ethernet"
@@ -21,7 +22,6 @@ $startRange = "192.168.35.100"
 $endRange = "192.168.35.200"
 $subnetMask = "255.255.255.0"
 
-$opnSense = "192.168.35.2"
 
 
 New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagementOS $true -ErrorAction Stop
@@ -31,7 +31,7 @@ New-VMSwitch -Name $vSwitchName -NetAdapterName $netAdapterName -AllowManagement
 # Set VLAN ID 
 Set-VMNetworkAdapterVlan -ManagementOS -Access -VlanId $vlanID -ErrorAction Stop
 
-Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses ($opnSense) -ErrorAction Stop
+Set-DnsClientServerAddress -InterfaceAlias $netAdapterName -ServerAddresses $opnSense -ErrorAction Stop
 
 
 # Ensure AD Services are running before proceeding
@@ -46,7 +46,7 @@ New-ADOrganizationalUnit -Name $ouName2 -Path "DC=$domain1,DC=$domain2"
 
 # Configure DHCP
 Add-DhcpServerv4Scope -Name $scopeName -StartRange $startRange -EndRange $endRange -SubnetMask $subnetMask
-Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $ip
+Set-DhcpServerv4OptionValue -ScopeId $ip -Router $gateway -DnsServer $opnSense
 
 Add-DhcpServerInDC -DnsName $computername -IPAddress $ip -ErrorAction Stop
 
